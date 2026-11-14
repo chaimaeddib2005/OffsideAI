@@ -1,6 +1,6 @@
 """Run the possession estimators on outputs/features.parquet and write submission CSVs.
 
-    python -m src.possession_estimators.run_estimators                       # all three
+    python -m src.possession_estimators.run_estimators                       # default estimators
     python -m src.possession_estimators.run_estimators --estimators viterbi
     python -m src.possession_estimators.run_estimators --vit_penalty 30 --min_run_seconds 1.5
     python -m src.possession_estimators.run_estimators --dead outputs/dead_mask.parquet
@@ -18,18 +18,18 @@ import time
 
 import numpy as np
 
-from . import combined, config, io_utils, learned, majority, paper_rules, state_machine, viterbi
+from . import combined, config, io_utils, learned, majority, state_machine, vidal_codina, viterbi
 from .config import Params
 from .evidence import compute_evidence
 
 ESTIMATORS = {"majority": majority, "state_machine": state_machine, "viterbi": viterbi,
-              "paper_rules": paper_rules, "learned": learned, "combined": combined}
+              "vidal_codina": vidal_codina, "learned": learned, "combined": combined}
 
 # main knob per estimator, and the values tried by --sweep
 SWEEPS = {"majority": ("majority_window", [25, 50, 75, 125]),
           "state_machine": ("sm_switch", [3.0, 4.5, 6.0, 9.0, 12.0, 18.0]),
           "viterbi": ("vit_penalty", [5.0, 10.0, 20.0, 40.0, 80.0, 160.0]),
-          "paper_rules": ("paper_pz_radius", [1.0, 1.5, 2.0, 2.5]),
+          "vidal_codina": ("vc_pz_radius", [1.0, 1.5, 2.0, 2.5]),
           "learned": ("learned_penalty", [5.0, 10.0, 20.0, 40.0, 80.0, 160.0]),
           "combined": ("combined_penalty", [5.0, 10.0, 20.0, 40.0, 80.0, 160.0])}
 
@@ -90,8 +90,10 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--features", default=None)
     parser.add_argument("--out", default=str(config.ESTIMATES_DIR))
-    parser.add_argument("--estimators", nargs="+", default=list(ESTIMATORS), choices=list(ESTIMATORS))
-    parser.add_argument("--dead", default=None, help="P3's dead-ball mask: frame,label CSV with D/N/X (or a file with is_dead, or .npy)")
+    parser.add_argument("--estimators", nargs="+", default=list(ESTIMATORS),
+                        choices=list(ESTIMATORS))
+    parser.add_argument("--dead", default=None,
+                        help="dead_ball mask: frame,label CSV with D/N/X")
     parser.add_argument("--outside", default="D", choices=["D", "X"],
                         help="label for frames outside the two halves (never scored). D matches the baseline")
     parser.add_argument("--sweep", action="store_true", help="print a parameter-stability table and exit")

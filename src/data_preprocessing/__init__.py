@@ -1,4 +1,4 @@
-"""P1 -- data preprocessing: raw tracking (ATD) -> one clean per-frame feature table.
+"""Data preprocessing: raw tracking (ATD) -> one clean per-frame feature table.
 
 Run from the repository root:
 

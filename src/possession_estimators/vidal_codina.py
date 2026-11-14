@@ -1,4 +1,4 @@
-"""Team-level adaptation of the possession rules in Vidal-Codina et al. (2022).
+"""Team-level adaptation of the possession method in Vidal-Codina et al. (2022).
 
 The paper uses individual player control zones and checks ball trajectory/speed changes
 within a player's control sequence. The cached project features retain only each team's
@@ -16,14 +16,14 @@ def _control_teams(table, p):
     d_away = table["d_away"].to_numpy(dtype=float)
     valid = table["ball_valid"].to_numpy(dtype=bool)
 
-    home_near = valid & np.isfinite(d_home) & (d_home <= p.paper_pz_radius)
-    away_near = valid & np.isfinite(d_away) & (d_away <= p.paper_pz_radius)
+    home_near = valid & np.isfinite(d_home) & (d_home <= p.vc_pz_radius)
+    away_near = valid & np.isfinite(d_away) & (d_away <= p.vc_pz_radius)
     duel = (
         valid
         & np.isfinite(d_home)
         & np.isfinite(d_away)
-        & (d_home <= p.paper_duel_radius)
-        & (d_away <= p.paper_duel_radius)
+        & (d_home <= p.vc_duel_radius)
+        & (d_away <= p.vc_duel_radius)
     )
 
     control = np.full(len(table), -1, dtype=np.int8)
@@ -71,7 +71,7 @@ def _contact_change(table, episode_start, episode_stop, p):
     x = table["ball_x"].to_numpy(dtype=float)
     y = table["ball_y"].to_numpy(dtype=float)
     valid = table["ball_valid"].to_numpy(dtype=bool)
-    window = p.paper_motion_window_frames
+    window = p.vc_motion_window_frames
 
     incoming = _motion_vector(x, y, valid, episode_start, -1, window)
     outgoing = _motion_vector(x, y, valid, episode_stop - 1, 1, window)
@@ -80,11 +80,11 @@ def _contact_change(table, episode_start, episode_stop, p):
 
     incoming_speed = float(np.linalg.norm(incoming))
     outgoing_speed = float(np.linalg.norm(outgoing))
-    speed_changed = abs(incoming_speed - outgoing_speed) >= p.paper_speed_delta
+    speed_changed = abs(incoming_speed - outgoing_speed) >= p.vc_speed_delta
     direction_changed = False
     if incoming_speed > 0 and outgoing_speed > 0:
         cosine = float(np.dot(incoming, outgoing) / (incoming_speed * outgoing_speed))
-        direction_changed = cosine <= p.paper_direction_cosine
+        direction_changed = cosine <= p.vc_direction_cosine
     return speed_changed or direction_changed
 
 

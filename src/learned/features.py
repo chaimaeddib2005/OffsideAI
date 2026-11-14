@@ -1,7 +1,7 @@
-"""Features for the learned model. They are computed from the P1 feature table ONLY.
+"""Features for the learned model. They are computed from the data_preprocessing feature table ONLY.
 
 That is the whole point: the same function runs on a Metrica training game and on the BAR-ATH
-match, because both are expressed in the P1 schema. Anything the challenge table lacks (the
+match, because both are expressed in the data_preprocessing schema. Anything the challenge table lacks (the
 second-nearest player, ball height, player identities, absolute pitch side) is deliberately not
 used. ball_x / ball_y are also left out: a model that sees where the ball is can learn which end
 the home team attacks in the training game, which is not transferable.

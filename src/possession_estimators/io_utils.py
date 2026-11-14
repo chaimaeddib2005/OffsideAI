@@ -34,7 +34,7 @@ def load_features(path=None):
 
 def load_dead_mask(path, n_frames):
     """Boolean array, True where the ball is dead. Accepts
-      * P3's mask: a .csv / .csv.gz / .parquet with columns frame,label where label is D / N / X
+      * dead_ball mask: a .csv / .csv.gz / .parquet with columns frame,label where label is D / N / X
         (D = dead ball; N and X are not dead, X frames are handled by the `graded` flag anyway),
       * a file with an `is_dead` column,
       * a bare boolean .npy array.

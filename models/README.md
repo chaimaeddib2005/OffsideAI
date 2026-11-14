@@ -1,6 +1,6 @@
 # models/
 
-* `possession_lgbm.txt`: LightGBM model, 200 rounds, 16 features computed from the P1 feature table (list in
+* `possession_lgbm.txt`: LightGBM model, 200 rounds, 16 features computed from the `data_preprocessing` feature table (list in
   `training_report.json`). Predicts P(home has the ball) for a frame with a usable ball.
 * `training_report.json`: training data, parameters, cross-game results, chosen penalties, feature importance,
   library versions.
@@ -12,4 +12,5 @@ Nothing from BAR-ATH was used: not its tracking, tagging, homography, nor its pu
 No labels were produced by hand.
 
 Retrain: `python -m src.learned.train --metrica-dir <sample-data>/data` (deterministic: same file every time).
-`make_submission.py` uses the committed model file, so the submission does not depend on the Metrica download.
+The `learned` and `combined` estimators use the committed model file. The default hand-written Viterbi
+submission does not load it, so generating that submission does not depend on the Metrica download.

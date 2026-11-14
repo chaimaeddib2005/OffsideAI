@@ -1,4 +1,4 @@
-"""Build  dead-ball mask.
+"""Build the dead-ball mask.
 
 Run from the repository root:
 

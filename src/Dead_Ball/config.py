@@ -1,4 +1,4 @@
-"""Person 3 configuration: paths, match constants, and dead-ball heuristics.
+"""Dead-ball configuration: paths, match constants, and detection heuristics.
 
 The frame structure is imported from games.py where possible and then checked against the
 published values for BAR-ATH. Thresholds below are physical or operational choices, not values
@@ -48,7 +48,7 @@ EXPECTED_BLOCKS = {
 }
 
 OUTPUT_DIR = ROOT / "outputs"
-FEATURES_PATH = OUTPUT_DIR / "features.parquet"      # P1 output; falls back to features.csv.gz
+FEATURES_PATH = OUTPUT_DIR / "features.parquet"      # data_preprocessing output; falls back to features.csv.gz
 FEATURES_META_PATH = OUTPUT_DIR / "features_meta.json"
 ATD_RAW_PATH = ROOT / "data" / "tactical" / "BAR-ATH_tactical_atd.txt"
 ATD_META_PATH = ROOT / "data" / "tactical" / "BAR-ATH_tactical_atd.xml"
@@ -145,7 +145,7 @@ def check_match_constants():
     blocks = {half: (first, last) for half, first, last in half_video_blocks(GAME)}
     if blocks != EXPECTED_BLOCKS:
         raise AssertionError(
-            "games.py half blocks {} disagree with Person 3 constants {}".format(
+            "games.py half blocks {} disagree with dead-ball constants {}".format(
                 blocks, EXPECTED_BLOCKS))
     if FIXED_DEAD_FRAMES != 2934:
         raise AssertionError("fixed second-half dead block is not 2,934 frames")

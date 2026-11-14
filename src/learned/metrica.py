@@ -1,4 +1,4 @@
-"""Load Metrica Sports sample games and express them in the P1 feature-table schema.
+"""Load Metrica Sports sample games and express them in the data_preprocessing feature-table schema.
 
 Adapted from saideepojha/football-possession-estimator (MIT) `data.py`. The difference: instead of
 building a private feature set, each game is pushed through THIS repository's own
@@ -85,7 +85,7 @@ def mask_ball(ball, blocks, rng, target_frac=0.40, median_gap_s=2.0, fps=25):
 
 
 def build_table(raw, ball_dropout_seed=None):
-    """P1-schema feature table for one Metrica game. With `ball_dropout_seed`, synthetic ball
+    """data_preprocessing-schema feature table for one Metrica game. With `ball_dropout_seed`, synthetic ball
     dropouts are applied first (training augmentation / stress test)."""
     players_m = raw["players"] * np.asarray(PITCH)
     ball_m = raw["ball"] * np.asarray(PITCH)

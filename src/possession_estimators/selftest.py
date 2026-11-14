@@ -15,7 +15,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from . import config, majority, paper_rules, state_machine, viterbi
+from . import config, majority, state_machine, vidal_codina, viterbi
 from .config import Params
 from .evidence import compute_evidence
 from .postprocess import merge_short_runs, segments, decode_all
@@ -75,7 +75,7 @@ def test_dead_ball_resets():
     h = np.array([0, 1, 1, 1, 0, 2, 2, 0]); assert segments(h) == [(1, 4), (5, 7)]
 
 
-def test_paper_rules():
+def test_vidal_codina():
     n = 140
     half = np.ones(n, dtype=np.int8)
     home_distance = np.full(n, 5.0)
@@ -93,12 +93,12 @@ def test_paper_rules():
         "ball_x": x,
         "ball_y": np.zeros(n),
     })
-    codes = paper_rules.estimate(table, P)
+    codes = vidal_codina.estimate(table, P)
     assert codes[39] == config.HOME and codes[40] == config.AWAY
     assert (codes[40:100] == config.AWAY).all()
 
     table["ball_x"] = np.arange(n, dtype=float)
-    unchanged = paper_rules.estimate(table, P)
+    unchanged = vidal_codina.estimate(table, P)
     assert (unchanged == config.HOME).all(), "a team switch without a ball-motion change is rejected"
 
     home_distance = table["d_home"].to_numpy(copy=True)
@@ -107,7 +107,7 @@ def test_paper_rules():
     away_distance[40:100] = 1.0
     table["d_home"] = home_distance
     table["d_away"] = away_distance
-    duel = paper_rules.estimate(table, P)
+    duel = vidal_codina.estimate(table, P)
     assert (duel == config.HOME).all(), "a duel must not assert a new team control"
 
 
@@ -201,7 +201,7 @@ def test_simulated_match():
 
 def main():
     for test in (test_merge_short_runs, test_state_machine_hysteresis, test_viterbi,
-                 test_dead_ball_resets, test_paper_rules, test_simulated_match):
+                 test_dead_ball_resets, test_vidal_codina, test_simulated_match):
         print("{} ...".format(test.__name__))
         test()
         print("  ok")

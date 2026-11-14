@@ -1,17 +1,16 @@
 """ONE command: the provided match data in, a validated <team>.csv out.
 
-    python make_submission.py --team MyTeam
-    python make_submission.py --team MyTeam --data-dir /path/to/mtah2027      # if not in ./data
+    python make_submission.py --team OffsideAI
+    python make_submission.py --team OffsideAI --data-dir /path/to/mtah2027  # if not in ./data
 
-Stages (each one is also runnable on its own, see src/*/README.md):
-  P1  src.data_preprocessing.build_features   raw ATD tracking  -> outputs/features.parquet
-  P3  src.Dead_Ball.build_p3                  features + Smart Tagging + player speeds (new detector)
-                                                                 -> outputs/dead_mask.csv
-  P2  src.possession_estimators.run_estimators  features + dead mask -> H / A / D per frame
+Stages (each one is also runnable on its own, see the component READMEs):
+  data_preprocessing   raw ATD tracking -> outputs/features.parquet
+  dead_ball            features + Smart Tagging + player speeds -> outputs/dead_mask.csv
+  possession_estimators  features + dead mask -> H / A / D per frame
   then: copy to submission/<team>.csv, run the organisers' validator on that exact file, and print
         the public-5-minute check (a plumbing check ONLY: never tune on it, see RULES.md).
 
-The default estimator is hand-written Viterbi with switch penalty 10. Everything is deterministic:
+The default estimator is hand-written Viterbi with switch penalty 15. Everything is deterministic:
 the same data and the same repository give the same file (RULES.md, rule 3).
 """
 import argparse
@@ -43,10 +42,12 @@ def main(argv=None):
     ap.add_argument("--team", required=True, help="team name; the file is submission/<team>.csv")
     ap.add_argument("--data-dir", default=None, help="folder holding the unpacked data bundle (default ./data)")
     ap.add_argument("--estimator", default="viterbi",
-                    choices=["combined", "learned", "viterbi", "state_machine", "paper_rules", "majority"])
+                    choices=["combined", "learned", "viterbi", "state_machine", "vidal_codina",
+                             "majority"])
     ap.add_argument("--vit-penalty", type=float, default=None,
                     help="Viterbi switch penalty (only applies with --estimator viterbi)")
-    ap.add_argument("--no-dead-mask", action="store_true", help="skip P3 (no D frames except outside the halves)")
+    ap.add_argument("--no-dead-mask", action="store_true",
+                    help="skip dead_ball detection")
     ap.add_argument("--reuse-features", action="store_true", help="do not rebuild outputs/features.parquet")
     args = ap.parse_args(argv)
 
@@ -71,22 +72,22 @@ def main(argv=None):
     out = ROOT / "outputs"
     features = out / "features.parquet"
     if not args.reuse_features or not (features.is_file() or (out / "features.csv.gz").is_file()):
-        banner("P1  cleaning the tracking -> per-frame feature table")
+        banner("data_preprocessing  cleaning tracking -> per-frame feature table")
         if build_features.main(["--data-dir", str(data_dir)]) != 0:
-            sys.exit("P1 failed (its QA checks did not pass); see the messages above")
+            sys.exit("data_preprocessing failed (its QA checks did not pass); see the messages above")
 
     dead_args = []
     if not args.no_dead_mask:
-        banner("P3  dead-ball mask")
+        banner("dead_ball  detecting stoppages")
         build_p3.main(["--raw-atd", str(atd)])
         dead_args = ["--dead", str(out / "dead_mask.csv")]
 
-    banner("P2  possession labels with the '{}' estimator".format(args.estimator))
+    banner("possession_estimators  labels with '{}'".format(args.estimator))
     est_dir = out / "possession_estimates"
     estimator_args = ["--estimators", args.estimator, "--out", str(est_dir)] + dead_args
     vit_penalty = args.vit_penalty
     if args.estimator == "viterbi" and vit_penalty is None:
-        vit_penalty = 10.0
+        vit_penalty = 15.0
     if vit_penalty is not None:
         estimator_args += ["--vit_penalty", str(vit_penalty)]
     if run_estimators.main(estimator_args) != 0:

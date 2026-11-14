@@ -53,19 +53,19 @@ class Params:
     sm_init: float = 4.0           # weighted frames needed to decide the first possession of a segment
 
     # --- viterbi ----------------------------------------------------------------------------
-    vit_penalty: float = 20.0      # cost of one switch, in units of "one frame of full evidence"
+    vit_penalty: float = 15.0      # cost of one switch, in units of "one frame of full evidence"
     vit_lambda: float = 1.0        # evidence scale (only the ratio penalty/lambda matters)
     learned_penalty: float = 10.0   # same, for the learned evidence alone
-    combined_penalty: float = 10.0  # same, for the hand-written + learned average (the submission default)
+    combined_penalty: float = 10.0  # same, for the hand-written + learned average
     # Both chosen on OTHER games by a pre-declared rule (flat region of cross-game spellF1, see
     # models/training_report.json), never on the BAR-ATH public window.
 
-    # --- paper-inspired team control rules --------------------------------------------------
-    paper_pz_radius: float = 1.5    # m; team-nearest adaptation of the paper's possession zone
-    paper_duel_radius: float = 2.5  # m; both teams this close suppresses a team control vote
-    paper_motion_window_frames: int = 3
-    paper_direction_cosine: float = 0.5
-    paper_speed_delta: float = 3.0  # m/s
+    # --- Vidal-Codina method adaptation -----------------------------------------------------
+    vc_pz_radius: float = 1.5    # m; team-nearest adaptation of the paper's possession zone
+    vc_duel_radius: float = 2.5  # m; both teams this close suppresses a team control vote
+    vc_motion_window_frames: int = 3
+    vc_direction_cosine: float = 0.5
+    vc_speed_delta: float = 3.0  # m/s
 
     # --- post-processing --------------------------------------------------------------------
     min_run_seconds: float = 1.0   # a "possession" shorter than this is absorbed by its neighbours
@@ -73,7 +73,7 @@ class Params:
     # --- majority reference -----------------------------------------------------------------
     majority_window: int = 50      # half-width in frames; 50 is the published baseline
 
-    # --- dead balls (P3) --------------------------------------------------------------------
+    # --- dead-ball mask ---------------------------------------------------------------------
     dead_gap_seconds: float = 0.0  # >0: treat ball gaps this long as dead. OFF by default: a
                                    # tracker dropout inside a possession would split it in two
 

@@ -1,6 +1,7 @@
-# data_preprocessing (P1)
+# data_preprocessing
 
-Turns the raw tracking (ATD) into ONE clean per-frame table that P2 and P3 read.
+Turns the raw tracking (ATD) into one clean per-frame table that the dead-ball detector and
+possession estimators read.
 It decides nothing about possession: no H/A, no D, no X.
 
 ## Install
@@ -12,7 +13,7 @@ Put this folder at `<repo>/src/data_preprocessing/`. Add `pyarrow` to `requireme
 ## Run (from the repo root)
 
     python -m src.data_preprocessing.selftest         # no data needed; proves the code works
-    python -m src.data_preprocessing.build_features   # builds outputs/features.parquet, then runs QA
+    python -m src.data_preprocessing.build_features --data-dir ./data
 
 Options: `--max-gap N`, `--max-speed V`, `--no-cache` (re-parse raw ATD), `--skip-qa`, `--data-dir`.
 First run parses the ATD (~1 min) and caches it in `outputs/cache/`.
@@ -28,10 +29,10 @@ First run parses the ATD (~1 min) and caches it in `outputs/cache/`.
 | `build_features.py` | the one command |
 | `qa.py` | sanity checks against numbers published in DATA.md and the published baseline |
 | `selftest.py` | synthetic-data test of the pipeline |
-| `FEATURES.md` | column dictionary: the contract with P2 and P3 |
+| `FEATURES.md` | column dictionary: the contract with dead-ball detection and possession estimation |
 
 ## Rules
 
 - Never use the public ground truth here. Never fix tracking by hand.
 - Thresholds are chosen for physical reasons, not by watching a score.
-- Do not rename columns once P2/P3 use them.
+- Do not rename columns once the downstream components use them.

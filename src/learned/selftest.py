@@ -2,7 +2,7 @@
 
     python -m src.learned.selftest
 
-Checks: the feature function runs on a table built by the real P1 code, never looks across
+Checks: the feature function runs on a table built by the real data_preprocessing code, never looks across
 halftime, is deterministic, matches the feature list stored with the model; the model loads and
 gives probabilities; evidence is exactly 0 where the ball is unusable; the `learned` and
 `combined` estimators return a valid label array.
@@ -43,14 +43,14 @@ def test_features():
     f = model_features(t)
     assert list(f.columns) == FEATURES and len(f) == len(t)
     assert np.array_equal(f.to_numpy(), model_features(t).to_numpy(), equal_nan=True), "not deterministic"
-    # Nothing from the second half may influence the first. KNOWN, DOCUMENTED EXCEPTION: P1's
+    # Nothing from the second half may influence the first. KNOWN, DOCUMENTED EXCEPTION: data_preprocessing's
     # ball_speed is a centred 5-frame mean over the whole array, so the last 2 frames of half 1 see
     # the first frames of half 2 when the halves are adjacent (Metrica, this synthetic table). On
     # BAR-ATH a 20,156-frame halftime gap sits between them, so it does not occur there. Those 2
     # frames (and the controller-context values derived from their speed) are excluded here.
     f2 = model_features(synthetic_table(perturb_half2=True))
     assert np.array_equal(f.to_numpy()[:2998], f2.to_numpy()[:2998], equal_nan=True), "leak across halftime"
-    print("  features: ok ({} columns, deterministic, no halftime leak beyond P1's 2-frame speed window)"
+    print("  features: ok ({} columns, deterministic, no halftime leak beyond data_preprocessing's 2-frame speed window)"
           .format(len(FEATURES)))
 
 

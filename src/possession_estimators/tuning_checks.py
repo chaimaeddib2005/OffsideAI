@@ -1,7 +1,7 @@
 """Label-free checks for choosing the estimator parameters. No ground truth from the match is used.
 
-    python -m src.possession_estimators.tuning_checks --dead outputs/p3_dead_mask.csv
-    python -m src.possession_estimators.tuning_checks --dead outputs/p3_dead_mask.csv --list-codes
+    python -m src.possession_estimators.tuning_checks --dead outputs/dead_mask.csv
+    python -m src.possession_estimators.tuning_checks --dead outputs/dead_mask.csv --list-codes
     python -m src.possession_estimators.tuning_checks --selftest        # no match data needed
 
 CHECK A -- Smart Tagging team agreement
@@ -335,7 +335,7 @@ def run_hidden_check(table, evidence, dead, p, args):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--features", default=None)
-    parser.add_argument("--dead", default=None, help="P3's dead-ball mask (frame,label D/N/X)")
+    parser.add_argument("--dead", default=None, help="dead_ball mask (frame,label D/N/X)")
     parser.add_argument("--data-dir", default=None, help="override MTAH_DATA_DIR / ./data")
     parser.add_argument("--estimators", nargs="+", default=["viterbi", "state_machine"], choices=list(ESTIMATORS))
     parser.add_argument("--grid", nargs="*", help="e.g. vit_penalty=8,12,20,30  sm_switch=6,9,12")

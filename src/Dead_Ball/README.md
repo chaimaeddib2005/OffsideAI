@@ -1,6 +1,6 @@
-#  Dead Ball Detection
+# Dead-ball detection
 
-This document describes the current  dead-ball implementation for the BAR-ATH match in the
+This document describes the current dead-ball implementation for the BAR-ATH match in the
 Barça Possession Challenge. It documents the code as it exists now; it does not describe planned or
 hypothetical behaviour.
 
@@ -12,7 +12,7 @@ hypothetical behaviour.
 
 A football match contains live-play periods and stoppages. During a stoppage, the ball is not in
 play: examples include the interval before a throw-in, corner, free kick, goal kick, kickoff, or the
-period between a goal and the following kickoff. Person 3 identifies those stoppage frames.
+period between a goal and the following kickoff. The `dead_ball` component identifies those stoppage frames.
 
 The full challenge asks for one label per tactical-video frame:
 
@@ -21,18 +21,18 @@ The full challenge asks for one label per tactical-video frame:
 - `D`: dead ball, not in play.
 - `X`: no answer, or a frame without ground truth.
 
-Person 3 is a component of that pipeline. It does **not** decide between `H` and `A`; it produces a
+The `dead_ball` component does **not** decide between `H` and `A`; it produces a
 dead-ball mask using `D`, `N`, and `X`:
 
-| Label | Person 3 meaning |
+| Label | `dead_ball` meaning |
 |---|---|
 | `D` | Dead ball: the frame belongs to a detected stoppage. |
 | `N` | Live Play: a graded frame that is not dead. This is an intermediate label, not an error and not a possession decision. The next possession-detection stage resolves it into `H` or `A`. |
 | `X` | Ungraded frame. In this implementation `X` is assigned from the input `graded` flag, not from model confidence. |
 
-### Objective of Person 3
+### Objective of dead-ball detection
 
-Person 3 receives tracking-derived features, raw ATD player-speed information, and automatic Smart
+Dead-ball detection receives tracking-derived features, raw ATD player-speed information, and automatic Smart
 Tagging event hints. It produces a frame-level dead-ball mask and diagnostics that explain why each
 dead interval was selected.
 
@@ -48,13 +48,14 @@ frames are outside the graded ranges.
   not possessions.
 - The ranking metric is possession-spell based, so boundary errors around restarts and goals matter
   more than a few isolated frame errors.
-- Person 3 isolates this difficult boundary problem from the later home/away classification task.
+- Dead-ball detection isolates this difficult boundary problem from the later home/away classification task.
 
 ### Inputs and outputs
 
-Person 3 reads:
+Dead-ball detection reads:
 
-- `outputs/features.csv.gz`: frame-level ball and cleaned tracking features.
+- `outputs/features.parquet`: frame-level ball and cleaned tracking features (falls back to
+  `outputs/features.csv.gz` if Parquet support is unavailable).
 - `data/tactical/BAR-ATH_tactical_atd.txt`: raw tracking player speeds.
 - `data/tactical/BAR-ATH_tactical_atd.xml`: ATD metadata, including the 46 player slots.
 - `data/tactical/BAR-ATH_tactical_smart_tagging.xml`: automatic set-piece and goal annotations.
@@ -63,7 +64,8 @@ Person 3 reads:
 It writes:
 
 - `outputs/p3_dead_mask.csv`: the final `frame,label` mask for all 199,319 tactical frames.
-- `outputs/dead_mask.csv`: the binary `frame,is_dead` mask consumed by P2 via `--dead`.
+- `outputs/dead_mask.csv`: the binary `frame,is_dead` mask consumed by
+  `src/possession_estimators` via `--dead`.
 - `outputs/p3_diagnostics/`: run summary, diagnostic CSVs, and plots.
 
 The pipeline does not decode the video and does not use the homography CSV.
@@ -72,9 +74,24 @@ The pipeline does not decode the video and does not use the homography CSV.
 
 ## B. Pipeline Architecture
 
-The build entry point is `src/Dead_Ball/build_p3.py`. The workflow is:
+The build entry point is `src/Dead_Ball/build_p3.py`. Build the feature table first, then run dead-ball detection:
 
-1. **Load Person 1 features** from `outputs/features.csv.gz` using `load_ball.read_features()`.
+```bash
+python -m src.data_preprocessing.build_features --data-dir ./data
+python -m src.Dead_Ball.build_p3 \
+  --features outputs/features.parquet \
+  --raw-atd data/tactical/BAR-ATH_tactical_atd.txt \
+  --out outputs/p3_dead_mask.csv \
+  --dead-out outputs/dead_mask.csv
+```
+
+The feature command must finish successfully before the dead-ball command. If the bundle is outside
+`./data`, set `MTAH_DATA_DIR` to its root and update `--data-dir` and `--raw-atd` accordingly;
+Smart Tagging is loaded from that bundle using `MTAH_DATA_DIR`.
+
+The workflow is:
+
+1. **Load the `data_preprocessing` feature table** from `outputs/features.parquet` using `load_ball.read_features()`.
 2. **Load raw ATD tracking** from `data/tactical/BAR-ATH_tactical_atd.txt` using
    `load_ball.load_player_speeds()`.
 3. **Extract player-speed information**. The 46 player slots are read from the ATD XML. For each
@@ -103,7 +120,7 @@ The build entry point is `src/Dead_Ball/build_p3.py`. The workflow is:
 
 ```mermaid
 flowchart TD
-    F["Person 1 features<br/>outputs/features.csv.gz"] --> S["Build frame signals"]
+    F["data_preprocessing features<br/>outputs/features.parquet"] --> S["Build frame signals"]
     A["Raw ATD player speeds<br/>BAR-ATH_tactical_atd.txt"] --> S
     X["ATD metadata<br/>BAR-ATH_tactical_atd.xml"] --> S
     T["Smart Tagging XML<br/>638 events"] --> R["Find restart candidates"]
@@ -129,22 +146,22 @@ reproducibility pass is performed in `build_p3.build()`.
 
 ### Input summary
 
-| Input | Path | Used fields | Why Person 3 needs it |
+| Input | Path | Used fields | Why dead-ball detection needs it |
 |---|---|---|---|
-| Person 1 features | `outputs/features.csv.gz` | `frame`, `half`, `graded`, `ball_x`, `ball_y`, `ball_observed`, `ball_valid`, `is_interp`, `is_spike`, `frames_since_ball`, `ball_gap_len`, `ball_speed` | Provides cleaned ball state, speed, gaps, pitch position, and graded ranges. |
+| `data_preprocessing` features | `outputs/features.parquet` | `frame`, `half`, `graded`, `ball_x`, `ball_y`, `ball_observed`, `ball_valid`, `is_interp`, `is_spike`, `frames_since_ball`, `ball_gap_len`, `ball_speed` | Provides cleaned ball state, speed, gaps, pitch position, and graded ranges. |
 | Raw ATD tracking | `data/tactical/BAR-ATH_tactical_atd.txt` | Player slots' third value per slot (speed), line frame id | Provides mean player speed, which is not retained in the feature cache. |
 | ATD metadata | `data/tactical/BAR-ATH_tactical_atd.xml` | `Player` entries | Determines that the raw ATD has 46 player slots. |
 | Smart Tagging | `data/tactical/BAR-ATH_tactical_smart_tagging.xml` | `code`, `start`, `end`, `Type`, `Team`, `Half` | Provides set-piece hints and goal events. |
 | Match constants | `games.py` and `src/Dead_Ball/config.py` | FPS, frame count, pitch, half blocks | Defines the valid frame space and physical distances. |
 
-`outputs/features.csv.gz` contains additional columns such as `d_home`, `d_away`, `margin`,
-`near_team`, `n_home`, and `n_away`. Person 3 does not use those columns.
+`outputs/features.parquet` contains additional columns such as `d_home`, `d_away`, `margin`,
+`near_team`, `n_home`, and `n_away`. Dead-ball detection does not use those columns.
 
-### Person 1 feature columns
+### `data_preprocessing` feature columns
 
 The feature cache is one row per tactical video frame:
 
-| Column | Meaning used by Person 3 |
+| Column | Meaning used by dead-ball detection |
 |---|---|
 | `frame` | Video frame, `0..199318`; must be contiguous. |
 | `half` | `1` or `2` for play; `0` for ungraded periods. |
@@ -169,7 +186,7 @@ frame_id:player_slot_1;player_slot_2;...;player_slot_46:ball_group
 Each player slot is `x,y,speed`. The loader uses the third value in each player slot. It ignores the
 ball group after the second colon because the cleaned ball signal comes from the feature file.
 
-The local raw ATD file has sequential frame IDs from `1` through `199319`. Person 3 therefore uses:
+The local raw ATD file has sequential frame IDs from `1` through `199319`. Dead-ball detection therefore uses:
 
 ```text
 video_frame = frame_id - 1
@@ -207,7 +224,7 @@ The file contains 638 events. The relevant subset is:
 | Total set-piece events | 59 |
 | GOALS | 4 |
 
-The Smart Tagging XML is an automatic annotation, not ground truth. Person 3 uses it only to locate
+The Smart Tagging XML is an automatic annotation, not ground truth. Dead-ball detection uses it only to locate
 likely restart windows. It does not copy Smart Tagging intervals directly into the output.
 
 ### Match constants
@@ -239,7 +256,7 @@ Frames outside the two graded ranges are assigned `X`.
 | `src/Dead_Ball/README.md` | This document. |
 | `src/Dead_Ball/__init__.py` | Package marker and exported module names. |
 | `src/Dead_Ball/config.py` | Paths, match constants, thresholds, restart profiles, and constant checks. |
-| `src/Dead_Ball/load_ball.py` | Reads Person 1 features, reads raw-ATD player speeds, and builds the signal dictionary. |
+| `src/Dead_Ball/load_ball.py` | Reads `data_preprocessing` features and raw-ATD player speeds, and builds the signal dictionary. |
 | `src/Dead_Ball/load_tagging.py` | Adapter for the repository Smart Tagging loader; loads events, restarts, goals, and goal-kickoff links. |
 | `src/Dead_Ball/rules.py` | Activity detection, restart discovery, dead-start estimation, goal handling, tracking-only intervals, and final label construction. |
 | `src/Dead_Ball/smoothing.py` | Removes short `D` islands, merges conservative gaps, and preserves protected frames. |
@@ -568,13 +585,13 @@ The example above is illustrative and truncated; it is not a contiguous excerpt.
 - `frame`: integer video frame, `0..199318`.
 - `label`: one of `D`, `N`, or `X`.
 
-This file is an intermediate Person 3 mask, not a complete challenge submission. `N` means Live Play
+This file is an intermediate dead-ball mask, not a complete challenge submission. `N` means Live Play
 (not dead) and is an intermediate label, not an error or missing answer. The next possession-detection
 stage resolves each `N` frame into `H` or `A`.
 
 ### `outputs/dead_mask.csv`
 
-The binary mask consumed by P2 through `--dead outputs/dead_mask.csv`. It has exactly two columns and
+The binary mask consumed by `src/possession_estimators` through `--dead outputs/dead_mask.csv`. It has exactly two columns and
 199,319 rows:
 
 ```csv
@@ -752,7 +769,7 @@ The current output hash is:
 
 ---
 
-## I. How to Run Person 3
+## I. How to Run the dead_ball component
 
 ### Required environment
 
@@ -788,10 +805,11 @@ python -m pip install matplotlib
 
 ### Run from the repository root
 
-From the repository root with the project environment active:
+From the repository root with the project environment active. Run the
+`data_preprocessing` command first to generate `outputs/features.parquet`:
 
 ```powershell
-python -m src.Dead_Ball.build_p3
+python -m src.Dead_Ball.build_p3 --features outputs/features.parquet --raw-atd data/tactical/BAR-ATH_tactical_atd.txt --out outputs/p3_dead_mask.csv --dead-out outputs/dead_mask.csv
 ```
 
 If using the provided Windows environment, activate it from the repository root first:
@@ -810,7 +828,7 @@ entry point because the package uses relative imports.
 Verified with `-m src.Dead_Ball.build_p3 --help`:
 
 ```text
---features FEATURES    Override the Person 1 feature CSV path.
+--features FEATURES    Override the data_preprocessing feature-table path.
 --raw-atd RAW_ATD      Override the raw ATD text path.
 --out OUT              Override the frame,label mask output path.
 --dead-out DEAD_OUT    Override the binary frame,is_dead mask path.
@@ -818,13 +836,14 @@ Verified with `-m src.Dead_Ball.build_p3 --help`:
 --no-repro-check       Skip the double-run determinism comparison.
 ```
 
-Example with explicit paths:
+Example with explicit paths (also specify `--dead-out` to write the mask used by possession estimation):
 
 ```powershell
 python -m src.Dead_Ball.build_p3 `
-  --features outputs\features.csv.gz `
+  --features outputs\features.parquet `
   --raw-atd data\tactical\BAR-ATH_tactical_atd.txt `
-  --out outputs\p3_dead_mask.csv
+  --out outputs\p3_dead_mask.csv `
+  --dead-out outputs\dead_mask.csv
 ```
 
 Running the build rewrites `outputs/p3_dead_mask.csv` and the diagnostics directory. Do not run it
@@ -917,8 +936,8 @@ intervals are combined into the final mask.
 ### Public 5-minute ground-truth proxy
 
 A read-only check was run against `evaluation/gt/BAR-ATH_possession_gt_public.csv` on the public
-window `11,185..18,684` (7,500 frames, the first 5 minutes of play). Person 3 `D` was compared with
-ground-truth `D`; Person 3 `N` was treated as Live Play. This is a dead-ball-only proxy, not the
+window `11,185..18,684` (7,500 frames, the first 5 minutes of play). Dead-ball `D` was compared with
+ground-truth `D`; dead-ball `N` was treated as Live Play. This is a dead-ball-only proxy, not the
 official challenge score and not a full-match evaluation.
 
 | Metric | Value |
@@ -940,7 +959,7 @@ were not tuned using this proxy check.
 ### Current limitations
 
 - Thresholds are physical or operational choices. They were not fitted using public ground truth.
-- Smart Tagging is automatic and may contain false positives and false negatives. Person 3 reduces
+- Smart Tagging is automatic and may contain false positives and false negatives. Dead-ball detection reduces
   this risk by using tags as hints rather than copying tagged intervals.
 - Untagged stoppages can be missed, especially when the ball remains visible, moves slowly, and
   player movement is moderate.
@@ -981,18 +1000,18 @@ These are not implemented in the current code:
 
 ### Missing input files
 
-Symptoms include `FileNotFoundError` for `outputs/features.csv.gz` or the raw ATD file, or an
+Symptoms include `FileNotFoundError` for `outputs/features.parquet` (or its CSV fallback) or the raw ATD file, or an
 `IOError` from the Smart Tagging loader saying `match data not found`.
 
 Check that these files exist from the repository root:
 
-- `outputs/features.csv.gz`
+- `outputs/features.parquet` (or `outputs/features.csv.gz` when Parquet support is unavailable)
 - `data/tactical/BAR-ATH_tactical_atd.txt`
 - `data/tactical/BAR-ATH_tactical_atd.xml`
 - `data/tactical/BAR-ATH_tactical_smart_tagging.xml`
 
 The Smart Tagging loader can use the `MTAH_DATA_DIR` environment variable if the data bundle is stored
-elsewhere. Person 3's feature and raw-ATD paths come from `src/Dead_Ball/config.py`.
+elsewhere. The dead-ball feature and raw-ATD paths come from `src/Dead_Ball/config.py`.
 
 ### Import errors
 
@@ -1040,7 +1059,7 @@ are not generated.
 ### Frame alignment problems
 
 - Feature error `features frame column is not 0..199318 in order`: regenerate or verify
-  `outputs/features.csv.gz`.
+  `outputs/features.parquet` (or its CSV fallback).
 - Raw ATD error `raw ATD is missing N frame ids`: the raw file does not cover all 199,319 frames
   using IDs `1..199319`.
 - The raw-ATD adapter maps `video_frame = frame_id - 1`. Do not add a tracking-counter offset to this

@@ -4,7 +4,7 @@
     python -m src.learned.train --metrica-dir sample-data/data
 
 What it does
-  1. Loads both games and expresses them in the P1 feature-table schema (metrica.py).
+  1. Loads both games and expresses them in the data_preprocessing feature-table schema (metrica.py).
   2. Builds proxy possession labels from the event data (labels.py).
   3. Cross-game validation: train on one game, test on the other, in both directions and in two
      conditions (ball as tracked, which already resembles BAR-ATH's 59% availability / extra synthetic dropouts as a stress test). Prints one table, compares the learned
