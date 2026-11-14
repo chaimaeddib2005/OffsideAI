@@ -1,0 +1,481 @@
+{
+  "trained_on": [
+    "Metrica Sample_Game_1",
+    "Metrica Sample_Game_2"
+  ],
+  "never_used": "BAR-ATH tracking, tagging, homography, public or private ground truth",
+  "labels": "event-derived proxy (src/learned/labels.py): determined frames only",
+  "labelled_frames": {
+    "1": 78386,
+    "2": 80655
+  },
+  "features": [
+    "d_home",
+    "d_away",
+    "margin",
+    "nearest",
+    "ball_speed",
+    "n_home_near",
+    "n_away_near",
+    "is_interp",
+    "home_closing",
+    "away_closing",
+    "margin_mean_25",
+    "margin_mean_75",
+    "last_ctrl_team",
+    "last_ctrl_age",
+    "next_ctrl_team",
+    "next_ctrl_age"
+  ],
+  "lightgbm_params": {
+    "objective": "binary",
+    "learning_rate": 0.05,
+    "num_leaves": 15,
+    "min_data_in_leaf": 200,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 1,
+    "lambda_l2": 1.0,
+    "seed": 0,
+    "bagging_seed": 0,
+    "feature_fraction_seed": 0,
+    "deterministic": true,
+    "force_row_wise": true,
+    "num_threads": 1,
+    "verbosity": -1
+  },
+  "rounds": 200,
+  "augmentation": "plus 2 copies of each game with extra synthetic ball dropouts (log-normal gaps; ~37% of frames usable, harsher than BAR-ATH). Metrica as tracked already has the ball on ~60% of graded frames (BAR-ATH: 59.3%)",
+  "cross_game_results": {
+    "1_clean": {
+      "majority (published-baseline style)": {
+        "spell_f1": 0.6688981868898187,
+        "n_pred_spells": 415,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8333886153139591
+      },
+      "viterbi, hand-written evidence": {
+        "spell_f1": 0.7808264462809917,
+        "n_pred_spells": 303,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8817263286811421
+      },
+      "learned model alone, no decoding": {
+        "spell_f1": 0.5330628803245436,
+        "n_pred_spells": 684,
+        "n_gt_spells": 302,
+        "frame_acc": 0.9483963973158472
+      },
+      "viterbi, learned evidence, penalty 5": {
+        "spell_f1": 0.8074418604651162,
+        "n_pred_spells": 343,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8578189982905111
+      },
+      "viterbi, learned evidence, penalty 10": {
+        "spell_f1": 0.808695652173913,
+        "n_pred_spells": 342,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8745184088995483
+      },
+      "viterbi, learned evidence, penalty 20": {
+        "spell_f1": 0.8146496815286625,
+        "n_pred_spells": 326,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8758706911948563
+      },
+      "viterbi, learned evidence, penalty 40": {
+        "spell_f1": 0.803225806451613,
+        "n_pred_spells": 318,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8822111091266297
+      },
+      "viterbi, learned evidence, penalty 80": {
+        "spell_f1": 0.7869281045751633,
+        "n_pred_spells": 310,
+        "n_gt_spells": 302,
+        "frame_acc": 0.887186487382951
+      },
+      "viterbi, learned evidence, penalty 160": {
+        "spell_f1": 0.735548172757475,
+        "n_pred_spells": 300,
+        "n_gt_spells": 302,
+        "frame_acc": 0.873025795422652
+      },
+      "viterbi, hand+learned evidence, penalty 5": {
+        "spell_f1": 0.8137071651090343,
+        "n_pred_spells": 340,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8744291072385375
+      },
+      "viterbi, hand+learned evidence, penalty 10": {
+        "spell_f1": 0.8201892744479495,
+        "n_pred_spells": 332,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8745311662796929
+      },
+      "viterbi, hand+learned evidence, penalty 20": {
+        "spell_f1": 0.8148148148148149,
+        "n_pred_spells": 319,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8839588702064144
+      },
+      "viterbi, hand+learned evidence, penalty 40": {
+        "spell_f1": 0.7948051948051947,
+        "n_pred_spells": 314,
+        "n_gt_spells": 302,
+        "frame_acc": 0.888296379455515
+      },
+      "viterbi, hand+learned evidence, penalty 80": {
+        "spell_f1": 0.7641196013289037,
+        "n_pred_spells": 300,
+        "n_gt_spells": 302,
+        "frame_acc": 0.882313168167785
+      },
+      "viterbi, hand+learned evidence, penalty 160": {
+        "spell_f1": 0.712751677852349,
+        "n_pred_spells": 294,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8822876534074963
+      }
+    },
+    "1_masked": {
+      "majority (published-baseline style)": {
+        "spell_f1": 0.4857855361596011,
+        "n_pred_spells": 500,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7060444467124232
+      },
+      "viterbi, hand-written evidence": {
+        "spell_f1": 0.706645056726094,
+        "n_pred_spells": 315,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8125813282984207
+      },
+      "learned model alone, no decoding": {
+        "spell_f1": 0.5515294117647059,
+        "n_pred_spells": 548,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8724517133161533
+      },
+      "viterbi, learned evidence, penalty 5": {
+        "spell_f1": 0.7058823529411764,
+        "n_pred_spells": 344,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7933942285612227
+      },
+      "viterbi, learned evidence, penalty 10": {
+        "spell_f1": 0.7063962558502339,
+        "n_pred_spells": 339,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7969662950016585
+      },
+      "viterbi, learned evidence, penalty 20": {
+        "spell_f1": 0.6987341772151898,
+        "n_pred_spells": 330,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7952057765417294
+      },
+      "viterbi, learned evidence, penalty 40": {
+        "spell_f1": 0.7046698872785828,
+        "n_pred_spells": 319,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7926798152731355
+      },
+      "viterbi, learned evidence, penalty 80": {
+        "spell_f1": 0.6930693069306931,
+        "n_pred_spells": 304,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7984716658586992
+      },
+      "viterbi, learned evidence, penalty 160": {
+        "spell_f1": 0.669579831932773,
+        "n_pred_spells": 293,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8218942158038425
+      },
+      "viterbi, hand+learned evidence, penalty 5": {
+        "spell_f1": 0.7062111801242236,
+        "n_pred_spells": 342,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7964687571760263
+      },
+      "viterbi, hand+learned evidence, penalty 10": {
+        "spell_f1": 0.712087912087912,
+        "n_pred_spells": 335,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7963539407547267
+      },
+      "viterbi, hand+learned evidence, penalty 20": {
+        "spell_f1": 0.708828250401284,
+        "n_pred_spells": 321,
+        "n_gt_spells": 302,
+        "frame_acc": 0.7954481667644733
+      },
+      "viterbi, hand+learned evidence, penalty 40": {
+        "spell_f1": 0.7011382113821139,
+        "n_pred_spells": 313,
+        "n_gt_spells": 302,
+        "frame_acc": 0.801546194473503
+      },
+      "viterbi, hand+learned evidence, penalty 80": {
+        "spell_f1": 0.697504159733777,
+        "n_pred_spells": 299,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8364503865486184
+      },
+      "viterbi, hand+learned evidence, penalty 160": {
+        "spell_f1": 0.6554054054054054,
+        "n_pred_spells": 290,
+        "n_gt_spells": 302,
+        "frame_acc": 0.8074911336207996
+      }
+    },
+    "2_clean": {
+      "majority (published-baseline style)": {
+        "spell_f1": 0.7155862068965518,
+        "n_pred_spells": 418,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8222800818300168
+      },
+      "viterbi, hand-written evidence": {
+        "spell_f1": 0.8128,
+        "n_pred_spells": 318,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8585828528919471
+      },
+      "learned model alone, no decoding": {
+        "spell_f1": 0.5607438016528925,
+        "n_pred_spells": 661,
+        "n_gt_spells": 307,
+        "frame_acc": 0.9338416713160994
+      },
+      "viterbi, learned evidence, penalty 5": {
+        "spell_f1": 0.8136858475894246,
+        "n_pred_spells": 336,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8375178228256153
+      },
+      "viterbi, learned evidence, penalty 10": {
+        "spell_f1": 0.8213500784929357,
+        "n_pred_spells": 330,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8383113260182258
+      },
+      "viterbi, learned evidence, penalty 20": {
+        "spell_f1": 0.815748031496063,
+        "n_pred_spells": 328,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8380261608083813
+      },
+      "viterbi, learned evidence, penalty 40": {
+        "spell_f1": 0.8173354735152486,
+        "n_pred_spells": 316,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8450437046680305
+      },
+      "viterbi, learned evidence, penalty 80": {
+        "spell_f1": 0.7869918699186992,
+        "n_pred_spells": 308,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8449445167689542
+      },
+      "viterbi, learned evidence, penalty 160": {
+        "spell_f1": 0.7177631578947368,
+        "n_pred_spells": 301,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8362283801376232
+      },
+      "viterbi, hand+learned evidence, penalty 5": {
+        "spell_f1": 0.8099533437013997,
+        "n_pred_spells": 336,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8375054243382307
+      },
+      "viterbi, hand+learned evidence, penalty 10": {
+        "spell_f1": 0.8144200626959248,
+        "n_pred_spells": 331,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8366747256834666
+      },
+      "viterbi, hand+learned evidence, penalty 20": {
+        "spell_f1": 0.813375796178344,
+        "n_pred_spells": 321,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8438906453412683
+      },
+      "viterbi, hand+learned evidence, penalty 40": {
+        "spell_f1": 0.8032362459546926,
+        "n_pred_spells": 311,
+        "n_gt_spells": 307,
+        "frame_acc": 0.847101853573864
+      },
+      "viterbi, hand+learned evidence, penalty 80": {
+        "spell_f1": 0.76,
+        "n_pred_spells": 303,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8512181513855309
+      },
+      "viterbi, hand+learned evidence, penalty 160": {
+        "spell_f1": 0.704983388704319,
+        "n_pred_spells": 295,
+        "n_gt_spells": 307,
+        "frame_acc": 0.836315169549315
+      }
+    },
+    "2_masked": {
+      "majority (published-baseline style)": {
+        "spell_f1": 0.5078817733990147,
+        "n_pred_spells": 505,
+        "n_gt_spells": 307,
+        "frame_acc": 0.6957535180707953
+      },
+      "viterbi, hand-written evidence": {
+        "spell_f1": 0.7066666666666667,
+        "n_pred_spells": 323,
+        "n_gt_spells": 307,
+        "frame_acc": 0.810327939991321
+      },
+      "learned model alone, no decoding": {
+        "spell_f1": 0.5303867403314918,
+        "n_pred_spells": 598,
+        "n_gt_spells": 307,
+        "frame_acc": 0.90975141032794
+      },
+      "viterbi, learned evidence, penalty 5": {
+        "spell_f1": 0.7061728395061728,
+        "n_pred_spells": 341,
+        "n_gt_spells": 307,
+        "frame_acc": 0.7915318331163598
+      },
+      "viterbi, learned evidence, penalty 10": {
+        "spell_f1": 0.713125,
+        "n_pred_spells": 333,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8059388754571942
+      },
+      "viterbi, learned evidence, penalty 20": {
+        "spell_f1": 0.7100000000000001,
+        "n_pred_spells": 333,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8053933420122745
+      },
+      "viterbi, learned evidence, penalty 40": {
+        "spell_f1": 0.7107544141252007,
+        "n_pred_spells": 316,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8161056351125163
+      },
+      "viterbi, learned evidence, penalty 80": {
+        "spell_f1": 0.6871125611745514,
+        "n_pred_spells": 306,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8258880416589176
+      },
+      "viterbi, learned evidence, penalty 160": {
+        "spell_f1": 0.6498338870431893,
+        "n_pred_spells": 295,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8113570144442378
+      },
+      "viterbi, hand+learned evidence, penalty 5": {
+        "spell_f1": 0.6993827160493826,
+        "n_pred_spells": 341,
+        "n_gt_spells": 307,
+        "frame_acc": 0.7872419564813092
+      },
+      "viterbi, hand+learned evidence, penalty 10": {
+        "spell_f1": 0.7096573208722742,
+        "n_pred_spells": 335,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8034467794929019
+      },
+      "viterbi, hand+learned evidence, penalty 20": {
+        "spell_f1": 0.7127962085308056,
+        "n_pred_spells": 326,
+        "n_gt_spells": 307,
+        "frame_acc": 0.814605418138987
+      },
+      "viterbi, hand+learned evidence, penalty 40": {
+        "spell_f1": 0.6922580645161289,
+        "n_pred_spells": 313,
+        "n_gt_spells": 307,
+        "frame_acc": 0.816304010910669
+      },
+      "viterbi, hand+learned evidence, penalty 80": {
+        "spell_f1": 0.6807248764415157,
+        "n_pred_spells": 300,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8277974087161366
+      },
+      "viterbi, hand+learned evidence, penalty 160": {
+        "spell_f1": 0.6442595673876872,
+        "n_pred_spells": 294,
+        "n_gt_spells": 307,
+        "frame_acc": 0.8001115863864608
+      }
+    }
+  },
+  "mean_spellF1_by_penalty": {
+    "learned": {
+      "5.0": 0.7582957251254725,
+      "10.0": 0.7623917466292707,
+      "20.0": 0.7597829725599787,
+      "40.0": 0.7589963953426613,
+      "80.0": 0.7385254606497769,
+      "160.0": 0.6931812624070435
+    },
+    "hand+learned": {
+      "5.0": 0.75731360124601,
+      "10.0": 0.764088642526015,
+      "20.0": 0.7624537674813121,
+      "40.0": 0.7478594291645326,
+      "80.0": 0.725587159376049,
+      "160.0": 0.6793500098374401
+    }
+  },
+  "mean_spellF1_majority": 0.5945379258362467,
+  "mean_spellF1_hand_viterbi": 0.7517345424184381,
+  "flat_region": {
+    "learned": [
+      5.0,
+      10.0,
+      20.0,
+      40.0
+    ],
+    "hand+learned": [
+      5.0,
+      10.0,
+      20.0,
+      40.0
+    ]
+  },
+  "recommended_penalty": {
+    "learned": 10.0,
+    "combined": 10.0
+  },
+  "feature_importance_gain": {
+    "next_ctrl_team": 1744527.8,
+    "margin_mean_75": 823990.7,
+    "last_ctrl_team": 229613.7,
+    "d_away": 73938.1,
+    "ball_speed": 66301.3,
+    "away_closing": 62130.9,
+    "home_closing": 57737.6,
+    "next_ctrl_age": 43435.5,
+    "last_ctrl_age": 35191.7,
+    "margin_mean_25": 34643.7,
+    "d_home": 32051.1,
+    "margin": 20232.8,
+    "nearest": 12185.8,
+    "n_away_near": 11422.7,
+    "n_home_near": 4832.1,
+    "is_interp": 112.0
+  },
+  "env": {
+    "python": "3.12.16",
+    "numpy": "2.5.4",
+    "lightgbm": "4.7.0"
+  },
+  "seconds": 23.8
+}

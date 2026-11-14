@@ -1,0 +1,9 @@
+# Pinned to the versions this repository was built and tested with (Python 3.12), so that the
+# submission file regenerates identically (RULES.md, rule 3). The scorer in evaluation/ only needs
+# numpy and pandas; the pipeline additionally needs pyarrow (feature table), lightgbm (learned
+# evidence) and matplotlib (P3 diagnostics plots).
+numpy==2.5.4
+pandas==3.0.6
+pyarrow==26.0.1
+lightgbm==4.7.0
+matplotlib==3.11.2
